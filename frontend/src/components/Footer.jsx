@@ -64,7 +64,7 @@ export const Footer = () => {
         </div>
 
         <div className="pt-8 border-t border-stone-800 text-center text-xs text-stone-500">
-          <p>© {new Date().getFullYear()} PawAdopt Management System. Built for full adoption lifecycle management.</p>
+          <p>© {new Date().getFullYear()} PetAdopt Management System. Built for full adoption lifecycle management.</p>
         </div>
       </div>
     </footer>
