@@ -1,0 +1,240 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Pet Adoption Management System API",
+    "description": "REST API documentation for the full-stack Pet Adoption Management System. Includes Visitor, User, and Admin endpoints.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5000/api",
+      "description": "Local development server"
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/auth/register": {
+      "post": {
+        "summary": "Register a new user",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "email", "password"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "email": { "type": "string" },
+                  "password": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "address": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "User created with JWT token" },
+          "400": { "description": "Validation error or email taken" }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login with email & password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email", "password"],
+                "properties": {
+                  "email": { "type": "string" },
+                  "password": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Returns JWT token & user details" },
+          "401": { "description": "Invalid credentials" }
+        }
+      }
+    },
+    "/pets": {
+      "get": {
+        "summary": "Browse pets with search, filtering & pagination (Visitor/Public)",
+        "parameters": [
+          { "name": "search", "in": "query", "schema": { "type": "string" }, "description": "Search by pet name or breed" },
+          { "name": "species", "in": "query", "schema": { "type": "string" }, "description": "Filter by species (Dog, Cat, Rabbit, Bird)" },
+          { "name": "breed", "in": "query", "schema": { "type": "string" } },
+          { "name": "minAge", "in": "query", "schema": { "type": "number" } },
+          { "name": "maxAge", "in": "query", "schema": { "type": "number" } },
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["available", "pending", "adopted", "all"] } },
+          { "name": "page", "in": "query", "schema": { "type": "integer", "default": 1 } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 9 } }
+        ],
+        "responses": {
+          "200": { "description": "List of pets with pagination metadata" }
+        }
+      },
+      "post": {
+        "summary": "Add a new pet (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["name", "species", "breed", "age", "description"],
+                "properties": {
+                  "name": { "type": "string" },
+                  "species": { "type": "string" },
+                  "breed": { "type": "string" },
+                  "age": { "type": "number" },
+                  "gender": { "type": "string", "enum": ["Male", "Female", "Unknown"] },
+                  "size": { "type": "string" },
+                  "description": { "type": "string" },
+                  "photos": { "type": "array", "items": { "type": "string" } },
+                  "status": { "type": "string", "enum": ["available", "pending", "adopted"] },
+                  "adoptionFee": { "type": "number" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Pet created" },
+          "403": { "description": "Admin authorization required" }
+        }
+      }
+    },
+    "/pets/{id}": {
+      "get": {
+        "summary": "Get pet details by ID (Public)",
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Pet details" }, "404": { "description": "Pet not found" } }
+      },
+      "put": {
+        "summary": "Update pet details (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Pet updated" } }
+      },
+      "delete": {
+        "summary": "Delete pet (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "responses": { "200": { "description": "Pet deleted" } }
+      }
+    },
+    "/pets/{id}/status": {
+      "patch": {
+        "summary": "Manually update pet status (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": { "type": "string", "enum": ["available", "pending", "adopted"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Pet status updated" } }
+      }
+    },
+    "/applications": {
+      "post": {
+        "summary": "Submit adoption application (User only)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["petId", "fullName", "email", "phone", "address", "reasonForAdopting"],
+                "properties": {
+                  "petId": { "type": "string" },
+                  "fullName": { "type": "string" },
+                  "email": { "type": "string" },
+                  "phone": { "type": "string" },
+                  "address": { "type": "string" },
+                  "housingType": { "type": "string" },
+                  "hasFencedYard": { "boolean": true },
+                  "hasOtherPets": { "type": "boolean" },
+                  "priorPetExperience": { "type": "string" },
+                  "reasonForAdopting": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Application submitted" },
+          "400": { "description": "Duplicate application or pet unavailable" }
+        }
+      },
+      "get": {
+        "summary": "Get all adoption applications (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          { "name": "status", "in": "query", "schema": { "type": "string", "enum": ["all", "pending", "approved", "rejected"] } },
+          { "name": "petId", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "List of applications" } }
+      }
+    },
+    "/applications/my": {
+      "get": {
+        "summary": "Get current user's submitted applications",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "List of user applications" } }
+      }
+    },
+    "/applications/{id}/status": {
+      "patch": {
+        "summary": "Approve or reject adoption application (Admin only)",
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [{ "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["status"],
+                "properties": {
+                  "status": { "type": "string", "enum": ["approved", "rejected", "pending"] },
+                  "adminNotes": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Application status updated. If approved, pet is automatically set to adopted." }
+        }
+      }
+    }
+  }
+}

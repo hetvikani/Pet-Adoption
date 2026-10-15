@@ -1,0 +1,13 @@
+{
+  "name": "pet-adoption-management-system",
+  "version": "1.0.0",
+  "description": "Full-stack Pet Adoption Management System",
+  "scripts": {
+    "backend": "npm --prefix backend-nestjs run start:prod",
+    "backend:dev": "npm --prefix backend-nestjs run start:dev",
+    "frontend": "npm --prefix frontend run dev",
+    "seed": "npm --prefix backend-nestjs run seed",
+    "build:backend": "npm --prefix backend-nestjs run build",
+    "build:frontend": "npm --prefix frontend run build"
+  }
+}
